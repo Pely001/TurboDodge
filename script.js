@@ -228,6 +228,13 @@
         window.addEventListener('touchend', handleTouchEvent, { passive: false });
         window.addEventListener('touchcancel', handleTouchEvent, { passive: false });
 
+        // Previne menu de contexto (clique com botão direito ou segurar toque) durante o jogo
+        window.addEventListener('contextmenu', e => {
+            if (canvas.style.display !== 'none') {
+                e.preventDefault();
+            }
+        });
+
         function togglePause() {
             if (gameOver) return;
             isPaused = !isPaused;
