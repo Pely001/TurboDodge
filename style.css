@@ -1,0 +1,228 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #0b0c10; /* Fundo escuro */
+    background-image: linear-gradient(0deg, transparent 24%, rgba(32, 255, 255, 0.1) 25%, rgba(32, 255, 255, 0.1) 26%, transparent 27%, transparent 74%, rgba(32, 255, 255, 0.1) 75%, rgba(32, 255, 255, 0.1) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(32, 255, 255, 0.1) 25%, rgba(32, 255, 255, 0.1) 26%, transparent 27%, transparent 74%, rgba(32, 255, 255, 0.1) 75%, rgba(32, 255, 255, 0.1) 76%, transparent 77%, transparent);
+    background-size: 50px 50px;
+    color: #c5c6c7;
+    font-family: 'Press Start 2P', cursive; /* Fonte retro */
+    position: relative;
+    overflow: hidden;
+}
+#gameContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+canvas {
+    background-color: #111;
+    border: 4px solid #66fcf1; /* Borda Neon */
+    border-radius: 8px;
+    box-shadow: 0 0 15px #66fcf1, inset 0 0 20px #0b0c10;
+    display: none;
+    position: relative;
+}
+#uiContainer {
+    position: absolute;
+    width: 500px; /* Igual à largura do canvas */
+    pointer-events: none;
+    display: none; /* Inicia oculto, será exibido via JS */
+    z-index: 5; /* Garante que fique acima do canvas */
+}
+#score {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1.5em;
+    color: #ff007f; /* Rosa Neon */
+    text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
+    pointer-events: auto; /* Permite interações (se houvesse) */
+}
+#lives {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 1.5em;
+    pointer-events: none;
+    text-shadow: 0 0 5px #ff2a2a;
+}
+.floating-text {
+    position: absolute;
+    color: #ffcc00;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-shadow: 0 0 10px #ffcc00;
+    pointer-events: none;
+    animation: floatUp 1s forwards;
+    z-index: 7;
+}
+@keyframes floatUp {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-50px); opacity: 0; }
+}
+#pauseMessage {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 40%;
+    display: none;
+    font-size: 2em;
+    color: #66fcf1;
+    text-shadow: 0 0 10px #66fcf1, 0 0 20px #66fcf1;
+    pointer-events: none;
+    width: 100%;
+    text-align: center;
+    z-index: 6; /* Acima do score e canvas */
+    animation: blink 1s infinite alternate;
+}
+
+@keyframes blink {
+    from { opacity: 1; }
+    to { opacity: 0.2; }
+}
+
+#highScoreContainer, #mainMenu {
+    width: 350px;
+    padding: 30px 20px;
+    background-color: rgba(11, 12, 16, 0.95);
+    border: 2px solid #ff007f;
+    box-shadow: 0 0 20px #ff007f;
+    border-radius: 10px;
+    text-align: center;
+    display: none;
+    z-index: 10; /* Sempre no topo */
+}
+#highScoreContainer h2, #mainMenu h2 {
+    margin-top: 0;
+    color: #66fcf1;
+    text-shadow: 0 0 10px #66fcf1;
+    font-size: 1.5em;
+    line-height: 1.5;
+}
+#highScoreContainer input {
+    padding: 12px;
+    width: 80%;
+    margin-bottom: 20px;
+    background-color: #1f2833;
+    border: 2px solid #66fcf1;
+    color: #66fcf1;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8em;
+    text-align: center;
+    outline: none;
+}
+#highScoreContainer button, #mainMenu button {
+    padding: 15px 20px;
+    border: 2px solid #ff007f;
+    background-color: transparent;
+    color: #ff007f;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 10px 5px;
+    width: 85%;
+    box-sizing: border-box;
+    text-shadow: 0 0 5px #ff007f;
+    box-shadow: inset 0 0 5px #ff007f, 0 0 5px #ff007f;
+}
+#highScoreContainer button:hover, #mainMenu button:hover {
+    background-color: #ff007f;
+    color: #0b0c10;
+    box-shadow: 0 0 15px #ff007f;
+}
+#rankingList {
+    list-style-type: none;
+    padding: 0;
+    text-align: left;
+    color: #45a29e;
+}
+#rankingList li {
+    font-size: 0.8em;
+    padding: 10px 0;
+    border-bottom: 1px dashed #1f2833;
+}
+#rankingList li:last-child {
+    border-bottom: none;
+}
+#fullscreenBtn {
+    padding: 10px 15px;
+    border: 1px solid #45a29e;
+    background-color: transparent;
+    color: #45a29e;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.6em;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+    z-index: 1; /* Abaixo do canvas e UI */
+}
+#fullscreenBtn:hover {
+    background-color: #45a29e;
+    color: #0b0c10;
+}
+#saveRecordSection {
+    display: none;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px dashed #ff007f;
+}
+.touch-controls {
+    display: none; /* Oculto por padrão, será exibido via JS/CSS media query */
+    position: absolute;
+    bottom: 30px;
+    width: 100%;
+    max-width: 500px; /* Alinha com a largura do canvas */
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    align-items: center;
+    pointer-events: auto;
+    z-index: 10; /* Garante que os botões fiquem por cima do canvas */
+}
+.touch-button {
+    background-color: rgba(31, 40, 51, 0.8);
+    color: #66fcf1;
+    border: 2px solid #66fcf1;
+    border-radius: 5px;
+    padding: 20px 30px;
+    font-size: 1.5em;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s, box-shadow 0.3s;
+    user-select: none; /* Previne seleção de texto */
+    -webkit-user-select: none; /* Para navegadores WebKit */
+    -moz-user-select: none; /* Para Firefox */
+    -ms-user-select: none; /* Para IE/Edge */
+    box-shadow: 0 0 10px #66fcf1;
+}
+.touch-button:active {
+    opacity: 1;
+    box-shadow: 0 0 20px #66fcf1, inset 0 0 10px #66fcf1;
+}
+/* Media Query para exibir os controles touch em telas menores */
+@media (max-width: 600px) {
+    .touch-controls {
+        display: flex; /* Exibe em telas menores */
+    }
+    #fullscreenBtn {
+        display: none; /* Esconde o botão de tela cheia em mobile se preferir */
+    }
+    canvas {
+        width: 100vw !important;
+        height: 100vh !important;
+        border: none;
+        border-radius: 0;
+    }
+    #uiContainer {
+        width: 100%;
+    }
+}

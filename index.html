@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desvio de Carros - Ranking</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="mainMenu">
+            <h2>Desvio de Carros</h2>
+            <button id="startGameBtn">Iniciar Jogo</button>
+            <button id="viewRankingBtn">Ver Ranking</button>
+        </div>
+
+        <div id="uiContainer">
+            <div id="lives">❤️❤️❤️</div>
+            <div id="score">0</div>
+            <div id="pauseMessage">PAUSADO</div>
+        </div>
+        <canvas id="gameCanvas" width="500" height="700"></canvas>
+        <button id="fullscreenBtn">Tela Cheia</button>
+        <div id="highScoreContainer">
+            <h2>Fim de Jogo!</h2>
+            <p>Sua pontuação: <b id="finalScore">0</b></p>
+
+            <div id="saveRecordSection">
+                <p>Parabéns! Você bateu um recorde!</p>
+                <p>Digite seu nome para o ranking:</p>
+                <input type="text" id="playerNameInput" maxlength="10" placeholder="Seu Nome">
+                <button id="saveScoreBtn">Salvar</button>
+            </div>
+
+            <hr>
+            <h2>Ranking</h2>
+            <ol id="rankingList"></ol>
+            <button id="restartGameBtn">Reiniciar Jogo</button>
+            <button id="backToMenuBtn">Voltar ao Menu</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
