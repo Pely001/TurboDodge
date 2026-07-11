@@ -42,6 +42,9 @@
             enemyCarImages.push(img);
         }
 
+        const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0;
+        let musicPlaying = false;
+
         // --- Variáveis de Áudio ---
         const collisionSound = new Audio('./audio/collision.ogg');
         const backgroundMusic = new Audio('./audio/background_music.ogg');
@@ -51,9 +54,6 @@
         backgroundMusic.preload = 'auto';
         backgroundMusic.load();
         collisionSound.volume = 0.7;
-
-        let musicPlaying = false;
-        const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0;
 
         // --- Variáveis de Estado do Jogo ---
         let player, enemies, score, gameOver, enemySpeed, keys = {}, roadLines;
