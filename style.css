@@ -21,17 +21,26 @@ body {
     align-items: center;
     gap: 15px;
 }
+#gameArea {
+    position: relative;
+    width: 500px;
+    height: 700px;
+}
 canvas {
     background-color: #111;
     border: 4px solid #66fcf1; /* Borda Neon */
     border-radius: 8px;
     box-shadow: 0 0 15px #66fcf1, inset 0 0 20px #0b0c10;
     display: none;
-    position: relative;
+    width: 100%;
+    height: 100%;
 }
 #uiContainer {
     position: absolute;
-    width: 500px; /* Igual à largura do canvas */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
     display: none; /* Inicia oculto, será exibido via JS */
     z-index: 5; /* Garante que fique acima do canvas */
@@ -90,6 +99,8 @@ canvas {
 
 #highScoreContainer, #mainMenu {
     width: 350px;
+    max-width: 90vw;
+    box-sizing: border-box;
     padding: 30px 20px;
     background-color: rgba(11, 12, 16, 0.95);
     border: 2px solid #ff007f;
@@ -216,13 +227,17 @@ canvas {
     #fullscreenBtn {
         display: none; /* Esconde o botão de tela cheia em mobile se preferir */
     }
+    #gameArea {
+        width: 100vw;
+        height: calc(100vw * 1.4);
+        max-width: calc(100vh * 0.714); /* 5 / 7 = 0.714 */
+        max-height: 100vh;
+        aspect-ratio: 5 / 7;
+        box-sizing: border-box;
+    }
     canvas {
-        width: 100vw !important;
-        height: 100vh !important;
         border: none;
         border-radius: 0;
-    }
-    #uiContainer {
-        width: 100%;
+        box-shadow: none;
     }
 }

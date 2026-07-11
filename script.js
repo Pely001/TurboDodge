@@ -51,7 +51,7 @@
         let musicPlaying = false;
 
         // --- Variáveis de Estado do Jogo ---
-        let player, enemies, score, gameOver, enemySpeed, keys, roadLines;
+        let player, enemies, score, gameOver, enemySpeed, keys = {}, roadLines;
         let isPaused = false;
         let spawnTimer = 0;
         let spawnInterval = 100;
@@ -106,26 +106,7 @@
         // Constante para o número de posições no ranking
         const RANKING_SIZE = 3;
 
-        // --- Funções de Controle Touch ---
-        function handleLeftButtonTouchStart(e) {
-            e.preventDefault();
-            keys['ArrowLeft'] = true;
-        }
-
-        function handleLeftButtonTouchEnd(e) {
-            e.preventDefault();
-            keys['ArrowLeft'] = false;
-        }
-
-        function handleRightButtonTouchStart(e) {
-            e.preventDefault();
-            keys['ArrowRight'] = true;
-        }
-
-        function handleRightButtonTouchEnd(e) {
-            e.preventDefault();
-            keys['ArrowRight'] = false;
-        }
+        // (Legacy touch handlers removed)
 
         function checkOverlap(car1, car2, yTolerance) {
             const car1X1 = car1.x + car1.offsetX;
@@ -215,6 +196,37 @@
             if (e.code === 'ArrowLeft') keys['ArrowLeft'] = false;
             if (e.code === 'ArrowRight') keys['ArrowRight'] = false;
         });
+
+        // --- Controles Touch para Mobile ---
+        function handleTouchEvent(e) {
+            // Só gerencia o toque e bloqueia scroll se o jogo estiver rodando ativamente
+            if (canvas.style.display === 'none' || isPaused || gameOver) {
+                return;
+            }
+            
+            e.preventDefault();
+
+            let leftPressed = false;
+            let rightPressed = false;
+            const midX = window.innerWidth / 2;
+
+            for (let i = 0; i < e.touches.length; i++) {
+                const touch = e.touches[i];
+                if (touch.clientX < midX) {
+                    leftPressed = true;
+                } else {
+                    rightPressed = true;
+                }
+            }
+
+            keys['ArrowLeft'] = leftPressed;
+            keys['ArrowRight'] = rightPressed;
+        }
+
+        window.addEventListener('touchstart', handleTouchEvent, { passive: false });
+        window.addEventListener('touchmove', handleTouchEvent, { passive: false });
+        window.addEventListener('touchend', handleTouchEvent, { passive: false });
+        window.addEventListener('touchcancel', handleTouchEvent, { passive: false });
 
         function togglePause() {
             if (gameOver) return;
@@ -799,27 +811,6 @@
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
         }
 
-        function setupControls() {
-            if (isMobileDevice()) {
-                window.addEventListener('touchstart', e => {
-                    if (isPaused || gameOver) return;
-                    const touch = e.touches[0];
-                    if (touch.clientX < window.innerWidth / 2) {
-                        keys['ArrowLeft'] = true;
-                        keys['ArrowRight'] = false;
-                    } else {
-                        keys['ArrowRight'] = true;
-                        keys['ArrowLeft'] = false;
-                    }
-                });
-
-                window.addEventListener('touchend', e => {
-                    keys['ArrowLeft'] = false;
-                    keys['ArrowRight'] = false;
-                });
-            }
-        }
-
         function hideAllScreens() {
             mainMenuEl.style.display = 'none';
             highScoreContainerEl.style.display = 'none';
@@ -833,7 +824,6 @@
             hideAllScreens();
             mainMenuEl.style.display = 'block';
             displayHighScores();
-            setupControls();
         }
 
         function showRankingScreen() {
@@ -916,9 +906,6 @@
                 });
             }
             init();
-            if (isMobileDevice()) {
-                touchControls.style.display = 'flex';
-            }
         });
 
         viewRankingBtn.addEventListener('click', showRankingScreen);
@@ -933,9 +920,6 @@
                 });
             }
             init();
-            if (isMobileDevice()) {
-                touchControls.style.display = 'flex';
-            }
         });
 
         saveScoreBtn.addEventListener('click', saveHighScore);
