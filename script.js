@@ -202,7 +202,7 @@
         // --- Controles Touch para Mobile ---
         function handleTouchEvent(e) {
             // Só gerencia o toque e bloqueia scroll se o jogo estiver rodando ativamente
-            if (canvas.style.display === 'none' || isPaused || gameOver) {
+            if (canvas.style.display !== 'block' || isPaused || gameOver) {
                 return;
             }
             
@@ -581,13 +581,20 @@
             });
 
             items.forEach(item => {
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = item.type === 'coin' ? '#ffdd00' : '#00ffff';
-                ctx.fillStyle = item.type === 'coin' ? '#ffdd00' : '#00ffff';
+                const color = item.type === 'coin' ? '#ffdd00' : '#00ffff';
+                const glowColor = item.type === 'coin' ? 'rgba(255, 221, 0, 0.25)' : 'rgba(0, 255, 255, 0.25)';
+                
+                // Desenha o brilho neon ao redor do item (muito mais rápido que shadowBlur)
+                ctx.fillStyle = glowColor;
+                ctx.beginPath();
+                ctx.arc(item.x + item.size/2, item.y + item.size/2, item.size * 0.8, 0, Math.PI*2);
+                ctx.fill();
+
+                // Desenha o corpo principal do item
+                ctx.fillStyle = color;
                 ctx.beginPath();
                 ctx.arc(item.x + item.size/2, item.y + item.size/2, item.size/2, 0, Math.PI*2);
                 ctx.fill();
-                ctx.shadowBlur = 0;
                 
                 ctx.fillStyle = '#000';
                 ctx.font = 'bold 20px Arial';
@@ -729,21 +736,19 @@
             ctx.lineWidth = 1;
             const gridSpacing = 40;
             
+            ctx.beginPath();
             // Linhas verticais da grade
             for (let x = 0; x < canvas.width; x += gridSpacing) {
-                ctx.beginPath();
                 ctx.moveTo(x, 0);
                 ctx.lineTo(x, canvas.height);
-                ctx.stroke();
             }
             
             // Linhas horizontais móveis (Parallax)
             for (let y = backgroundOffset - gridSpacing; y < canvas.height; y += gridSpacing) {
-                ctx.beginPath();
                 ctx.moveTo(0, y);
                 ctx.lineTo(canvas.width, y);
-                ctx.stroke();
             }
+            ctx.stroke();
 
             // Asfalto (Levemente transparente para ver o grid passando por baixo)
             ctx.fillStyle = 'rgba(44, 44, 52, 0.85)';
