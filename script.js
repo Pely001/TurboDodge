@@ -193,7 +193,7 @@
                  firstEnemyLane = Math.random() < 0.5 ? 0 : 2;
             }
 
-            const initialEnemyX = firstEnemyLane * (canvas.width / 3) + Math.random() * (canvas.width / 3 - CAR_MAX_DRAW_SIZE);
+            const initialEnemyX = calculateLaneSpawnX(firstEnemyLane, CAR_MAX_DRAW_WIDTH);
             const initialEnemyY = -canvas.height * 0.3;
             createEnemy(initialEnemyX, initialEnemyY);
 
@@ -348,7 +348,7 @@
 
                     let spawnedSuccessfully = false;
                     while (attempts < maxAttempts) {
-                        newCarX = laneToSpawn * (canvas.width / 3) + Math.random() * (canvas.width / 3 - tempEnemy.drawWidth);
+                        newCarX = calculateLaneSpawnX(laneToSpawn, tempEnemy.drawWidth);
                         tempEnemy.x = newCarX;
 
                         let overlapDetected = false;
@@ -613,6 +613,28 @@
 
         function getRandomArrayElement(arr) {
             return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function calculateLaneSpawnX(lane, carWidth) {
+            const zebraWidth = 20;
+            const roadBorderOffset = 4; // yellow line width
+            const leftLimit = zebraWidth + roadBorderOffset; // 24
+            const rightLimit = canvas.width - zebraWidth - roadBorderOffset; // 476
+            const totalLaneWidth = canvas.width / 3;
+
+            if (lane === 0) {
+                const minX = leftLimit;
+                const maxX = totalLaneWidth - carWidth;
+                return minX + Math.random() * (maxX - minX);
+            } else if (lane === 1) {
+                const minX = totalLaneWidth;
+                const maxX = totalLaneWidth * 2 - carWidth;
+                return minX + Math.random() * (maxX - minX);
+            } else {
+                const minX = totalLaneWidth * 2;
+                const maxX = rightLimit - carWidth;
+                return minX + Math.random() * (maxX - minX);
+            }
         }
 
         function createEnemy(xPosition = null, yPosition = null) {
