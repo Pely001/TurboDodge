@@ -272,8 +272,13 @@
             player.speedX *= friction;
             player.x += player.speedX;
             
-            if (player.x < 0) { player.x = 0; player.speedX = 0; }
-            if (player.x > canvas.width - player.drawWidth) { player.x = canvas.width - player.drawWidth; player.speedX = 0; }
+            const zebraWidth = 20;
+            const roadBorderOffset = 4; // yellow line width
+            const roadLeftLimit = zebraWidth + roadBorderOffset; // 24
+            const roadRightLimit = canvas.width - zebraWidth - roadBorderOffset; // 476
+
+            if (player.x < roadLeftLimit) { player.x = roadLeftLimit; player.speedX = 0; }
+            if (player.x > roadRightLimit - player.drawWidth) { player.x = roadRightLimit - player.drawWidth; player.speedX = 0; }
             
             player.rotation = player.speedX * 0.05;
 
