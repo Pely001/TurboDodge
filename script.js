@@ -572,16 +572,11 @@
             
             blinkFrame++;
             if (!isInvincible || blinkFrame % 5 < 3) {
-                if (IS_MOBILE) {
-                    // Mobile: drawImage direto, sem ctx.save/rotate (mais rápido)
-                    ctx.drawImage(playerCarImg, player.x, player.y, player.drawWidth, player.drawHeight);
-                } else {
-                    ctx.save();
-                    ctx.translate(player.x + player.drawWidth / 2, player.y + player.drawHeight / 2);
-                    ctx.rotate(player.rotation || 0);
-                    ctx.drawImage(playerCarImg, -player.drawWidth / 2, -player.drawHeight / 2, player.drawWidth, player.drawHeight);
-                    ctx.restore();
-                }
+                ctx.save();
+                ctx.translate(player.x + player.drawWidth / 2, player.y + player.drawHeight / 2);
+                ctx.rotate(player.rotation || 0);
+                ctx.drawImage(playerCarImg, -player.drawWidth / 2, -player.drawHeight / 2, player.drawWidth, player.drawHeight);
+                ctx.restore();
             }
             
             enemies.forEach(enemy => {
@@ -600,16 +595,14 @@
             ctx.textBaseline = 'middle';
             items.forEach(item => {
                 const color = item.type === 'coin' ? '#ffdd00' : '#00ffff';
+                const glowColor = item.type === 'coin' ? 'rgba(255, 221, 0, 0.25)' : 'rgba(0, 255, 255, 0.25)';
                 const label = item.type === 'coin' ? '$' : '⏱';
 
-                if (!IS_MOBILE) {
-                    // Brilho neon só no desktop
-                    const glowColor = item.type === 'coin' ? 'rgba(255, 221, 0, 0.25)' : 'rgba(0, 255, 255, 0.25)';
-                    ctx.fillStyle = glowColor;
-                    ctx.beginPath();
-                    ctx.arc(item.x + item.size/2, item.y + item.size/2, item.size * 0.8, 0, Math.PI*2);
-                    ctx.fill();
-                }
+                // Brilho neon (simples e rápido nos dois modos)
+                ctx.fillStyle = glowColor;
+                ctx.beginPath();
+                ctx.arc(item.x + item.size/2, item.y + item.size/2, item.size * 0.8, 0, Math.PI*2);
+                ctx.fill();
 
                 ctx.fillStyle = color;
                 ctx.beginPath();
@@ -620,7 +613,7 @@
                 ctx.fillText(label, item.x + item.size/2, item.y + item.size/2 + 2);
             });
 
-            // Partículas (desativadas no mobile)
+            // Partículas (desativadas no mobile — principal causa de lag)
             if (!IS_MOBILE && particles.length > 0) {
                 for (let i = 0; i < particles.length; i++) {
                     const p = particles[i];
