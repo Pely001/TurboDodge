@@ -544,7 +544,15 @@
                 ctx.restore();
             }
             
-            enemies.forEach(enemy => ctx.drawImage(enemy.img, enemy.x, enemy.y, enemy.drawWidth, enemy.drawHeight));
+            enemies.forEach(enemy => {
+                ctx.save();
+                ctx.translate(enemy.x + enemy.drawWidth / 2, enemy.y + enemy.drawHeight / 2);
+                if (enemy.img.src.includes('enemy_new_1.png')) {
+                    ctx.rotate(Math.PI);
+                }
+                ctx.drawImage(enemy.img, -enemy.drawWidth / 2, -enemy.drawHeight / 2, enemy.drawWidth, enemy.drawHeight);
+                ctx.restore();
+            });
 
             items.forEach(item => {
                 ctx.shadowBlur = 10;
