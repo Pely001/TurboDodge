@@ -17,6 +17,7 @@
         const viewRankingBtn = document.getElementById('viewRankingBtn');
         const backToMenuBtn = document.getElementById('backToMenuBtn');
         const uiContainerEl = document.getElementById('uiContainer'); // Referência para o uiContainer
+        const gameAreaEl = document.getElementById('gameArea');
 
         // --- Variáveis de Carregamento de Imagens ---
         let assetsLoaded = 0;
@@ -128,6 +129,7 @@
 
         function init() {
             hideAllScreens();
+            gameAreaEl.style.display = 'block';
             canvas.style.display = 'block';
             uiContainerEl.style.display = 'block'; // Garante que o placar esteja visível
 
@@ -826,6 +828,7 @@
         function hideAllScreens() {
             mainMenuEl.style.display = 'none';
             highScoreContainerEl.style.display = 'none';
+            gameAreaEl.style.display = 'none';
             canvas.style.display = 'none';
             pauseMessageEl.style.display = 'none';
             saveRecordSectionEl.style.display = 'none';

@@ -38,6 +38,7 @@ input, textarea {
     gap: 15px;
 }
 #gameArea {
+    display: none;
     position: relative;
     width: 500px;
     height: 700px;
