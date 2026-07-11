@@ -50,6 +50,7 @@
         collisionSound.volume = 0.7;
 
         let musicPlaying = false;
+        const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 0;
 
         // --- Variáveis de Estado do Jogo ---
         let player, enemies, score, gameOver, enemySpeed, keys = {}, roadLines;
@@ -59,6 +60,7 @@
         let scoreMultiplier = 1;
         let particles = [];
         let backgroundOffset = 0;
+        let blinkFrame = 0; // Contador de frames para o efeito de piscar do jogador
 
         // --- Variáveis para Dificuldade Dinâmica ---
         const INITIAL_ENEMY_SPEED = 5;
@@ -463,7 +465,7 @@
                         collisionSound.currentTime = 0;
                         collisionSound.play().catch(e => console.log("Erro ao tocar som de colisão:", e));
                         
-                        spawnParticles(playerHitboxX + player.collisionWidth / 2, playerHitboxY, 'rgba(255, 150, 0, 1)', 40, 2); // Explosão de faíscas
+                        spawnParticles(playerHitboxX + player.collisionWidth / 2, playerHitboxY, 'rgba(255, 150, 0, 1)', IS_MOBILE ? 15 : 40, 2); // Explosão de faíscas
 
                         lives--;
                         updateLives();
@@ -486,7 +488,7 @@
                         enemy.nearMissed = true;
                         score += 10;
                         updateScore();
-                        spawnParticles(enemy.x + enemy.drawWidth/2, enemy.y + enemy.drawHeight/2, 'rgba(0, 255, 255, 1)', 15, 1.5);
+                        spawnParticles(enemy.x + enemy.drawWidth/2, enemy.y + enemy.drawHeight/2, 'rgba(0, 255, 255, 1)', IS_MOBILE ? 5 : 15, 1.5);
                         showFloatingText('+10 FINA!', player.x + player.drawWidth/2, player.y - 20);
                     }
                 }
@@ -503,9 +505,8 @@
 
             const effectiveEnemySpeed = window.slowMotionTimer > 0 ? enemySpeed * 0.5 : enemySpeed;
 
-            // Fumaça do escapamento do jogador
-            if (Math.random() < 0.4) {
-                // Dois canos de escape
+            // Fumaça do escapamento do jogador (desativado no mobile para melhorar FPS)
+            if (!IS_MOBILE && Math.random() < 0.4) {
                 spawnParticles(player.x + player.drawWidth * 0.3, player.y + player.drawHeight * 0.9, 'rgba(200, 200, 200, 0.4)', 1, 0.5);
                 spawnParticles(player.x + player.drawWidth * 0.7, player.y + player.drawHeight * 0.9, 'rgba(200, 200, 200, 0.4)', 1, 0.5);
             }
@@ -562,7 +563,8 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawRoadLines();
             
-            if (!isInvincible || Math.floor(Date.now() / 150) % 2 === 0) {
+            blinkFrame++;
+            if (!isInvincible || blinkFrame % 5 < 3) {
                 ctx.save();
                 ctx.translate(player.x + player.drawWidth / 2, player.y + player.drawHeight / 2);
                 ctx.rotate(player.rotation || 0);
@@ -573,45 +575,49 @@
             enemies.forEach(enemy => {
                 ctx.save();
                 ctx.translate(enemy.x + enemy.drawWidth / 2, enemy.y + enemy.drawHeight / 2);
-                if (enemy.img.src.includes('enemy_new_1.png')) {
+                if (enemy.needsRotation) {
                     ctx.rotate(Math.PI);
                 }
                 ctx.drawImage(enemy.img, -enemy.drawWidth / 2, -enemy.drawHeight / 2, enemy.drawWidth, enemy.drawHeight);
                 ctx.restore();
             });
 
+            // Itens de moeda e slow-mo
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             items.forEach(item => {
                 const color = item.type === 'coin' ? '#ffdd00' : '#00ffff';
                 const glowColor = item.type === 'coin' ? 'rgba(255, 221, 0, 0.25)' : 'rgba(0, 255, 255, 0.25)';
+                const label = item.type === 'coin' ? '$' : '⏱';
                 
-                // Desenha o brilho neon ao redor do item (muito mais rápido que shadowBlur)
+                // Brilho neon (mais rápido que shadowBlur)
                 ctx.fillStyle = glowColor;
                 ctx.beginPath();
                 ctx.arc(item.x + item.size/2, item.y + item.size/2, item.size * 0.8, 0, Math.PI*2);
                 ctx.fill();
 
-                // Desenha o corpo principal do item
                 ctx.fillStyle = color;
                 ctx.beginPath();
                 ctx.arc(item.x + item.size/2, item.y + item.size/2, item.size/2, 0, Math.PI*2);
                 ctx.fill();
-                
+
                 ctx.fillStyle = '#000';
-                ctx.font = 'bold 20px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(item.type === 'coin' ? '$' : '⏱', item.x + item.size/2, item.y + item.size/2 + 2);
+                ctx.fillText(label, item.x + item.size/2, item.y + item.size/2 + 2);
             });
 
-            // Desenha partículas
-            particles.forEach(p => {
-                ctx.globalAlpha = Math.max(0, p.life);
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-            });
-            ctx.globalAlpha = 1.0;
+            // Desenha partículas — agrupa por alpha para minimizar troca de estado de GPU
+            if (particles.length > 0) {
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    ctx.globalAlpha = Math.max(0, p.life);
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1.0;
+            }
 
             if (typeof DEBUG_HITBOX !== 'undefined' && DEBUG_HITBOX) {
                 ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
@@ -699,7 +705,9 @@
                 offsetY: enemyOffsetY,
                 speedOffset: speedOffset,
                 baseSpeedOffset: speedOffset,
-                img: randomEnemyImg
+                img: randomEnemyImg,
+                // Cache para evitar string comparison por frame no draw()
+                needsRotation: randomEnemyImg.src.includes('enemy_new_1.png')
             });
         }
 
