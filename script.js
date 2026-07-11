@@ -46,7 +46,10 @@
         const collisionSound = new Audio('./audio/collision.ogg');
         const backgroundMusic = new Audio('./audio/background_music.ogg');
         backgroundMusic.loop = true;
-        backgroundMusic.volume = 0.5;
+        backgroundMusic.volume = IS_MOBILE ? 0.3 : 0.5;
+        // Pré-carrega o áudio para reduzir atraso no mobile
+        backgroundMusic.preload = 'auto';
+        backgroundMusic.load();
         collisionSound.volume = 0.7;
 
         let musicPlaying = false;
@@ -511,17 +514,21 @@
                 spawnParticles(player.x + player.drawWidth * 0.7, player.y + player.drawHeight * 0.9, 'rgba(200, 200, 200, 0.4)', 1, 0.5);
             }
 
-            // Atualiza partículas
-            particles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy + (effectiveEnemySpeed * 0.3); // Partículas descem com a pista
-                p.life -= p.decay;
-            });
-            particles = particles.filter(p => p.life > 0);
+            // Atualiza partículas (desativado totalmente no mobile)
+            if (!IS_MOBILE) {
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy + (effectiveEnemySpeed * 0.3);
+                    p.life -= p.decay;
+                });
+                particles = particles.filter(p => p.life > 0);
+            }
 
-            // Atualiza Fundo em Parallax
-            backgroundOffset += (effectiveEnemySpeed * 0.3); // Move mais lento que a pista
-            if (backgroundOffset > 40) backgroundOffset = 0;
+            // Atualiza Fundo em Parallax (só no desktop)
+            if (!IS_MOBILE) {
+                backgroundOffset += (effectiveEnemySpeed * 0.3);
+                if (backgroundOffset > 40) backgroundOffset = 0;
+            }
 
             moveRoadLines();
 
@@ -565,11 +572,16 @@
             
             blinkFrame++;
             if (!isInvincible || blinkFrame % 5 < 3) {
-                ctx.save();
-                ctx.translate(player.x + player.drawWidth / 2, player.y + player.drawHeight / 2);
-                ctx.rotate(player.rotation || 0);
-                ctx.drawImage(playerCarImg, -player.drawWidth / 2, -player.drawHeight / 2, player.drawWidth, player.drawHeight);
-                ctx.restore();
+                if (IS_MOBILE) {
+                    // Mobile: drawImage direto, sem ctx.save/rotate (mais rápido)
+                    ctx.drawImage(playerCarImg, player.x, player.y, player.drawWidth, player.drawHeight);
+                } else {
+                    ctx.save();
+                    ctx.translate(player.x + player.drawWidth / 2, player.y + player.drawHeight / 2);
+                    ctx.rotate(player.rotation || 0);
+                    ctx.drawImage(playerCarImg, -player.drawWidth / 2, -player.drawHeight / 2, player.drawWidth, player.drawHeight);
+                    ctx.restore();
+                }
             }
             
             enemies.forEach(enemy => {
@@ -588,14 +600,16 @@
             ctx.textBaseline = 'middle';
             items.forEach(item => {
                 const color = item.type === 'coin' ? '#ffdd00' : '#00ffff';
-                const glowColor = item.type === 'coin' ? 'rgba(255, 221, 0, 0.25)' : 'rgba(0, 255, 255, 0.25)';
                 const label = item.type === 'coin' ? '$' : '⏱';
-                
-                // Brilho neon (mais rápido que shadowBlur)
-                ctx.fillStyle = glowColor;
-                ctx.beginPath();
-                ctx.arc(item.x + item.size/2, item.y + item.size/2, item.size * 0.8, 0, Math.PI*2);
-                ctx.fill();
+
+                if (!IS_MOBILE) {
+                    // Brilho neon só no desktop
+                    const glowColor = item.type === 'coin' ? 'rgba(255, 221, 0, 0.25)' : 'rgba(0, 255, 255, 0.25)';
+                    ctx.fillStyle = glowColor;
+                    ctx.beginPath();
+                    ctx.arc(item.x + item.size/2, item.y + item.size/2, item.size * 0.8, 0, Math.PI*2);
+                    ctx.fill();
+                }
 
                 ctx.fillStyle = color;
                 ctx.beginPath();
@@ -606,8 +620,8 @@
                 ctx.fillText(label, item.x + item.size/2, item.y + item.size/2 + 2);
             });
 
-            // Desenha partículas — agrupa por alpha para minimizar troca de estado de GPU
-            if (particles.length > 0) {
+            // Partículas (desativadas no mobile)
+            if (!IS_MOBILE && particles.length > 0) {
                 for (let i = 0; i < particles.length; i++) {
                     const p = particles[i];
                     ctx.globalAlpha = Math.max(0, p.life);
@@ -736,58 +750,51 @@
         }
 
         function drawRoadLines() {
-            // Fundo Synthwave Grid
-            ctx.fillStyle = '#110022'; // Fundo roxo bem escuro
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (IS_MOBILE) {
+                // Mobile: fundo opaco simples (sem grade transparente, sem alpha blend)
+                ctx.fillStyle = '#1c1c28';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                // Desktop: fundo synthwave com grade neon
+                ctx.fillStyle = '#110022';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)'; // Grade neon ciano
-            ctx.lineWidth = 1;
-            const gridSpacing = 40;
-            
-            ctx.beginPath();
-            // Linhas verticais da grade
-            for (let x = 0; x < canvas.width; x += gridSpacing) {
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
+                ctx.lineWidth = 1;
+                const gridSpacing = 40;
+
+                ctx.beginPath();
+                for (let x = 0; x < canvas.width; x += gridSpacing) {
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                }
+                for (let y = backgroundOffset - gridSpacing; y < canvas.height; y += gridSpacing) {
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                }
+                ctx.stroke();
+
+                // Asfalto transparente (mostra a grade por baixo)
+                ctx.fillStyle = 'rgba(44, 44, 52, 0.85)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
-            
-            // Linhas horizontais móveis (Parallax)
-            for (let y = backgroundOffset - gridSpacing; y < canvas.height; y += gridSpacing) {
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-            }
-            ctx.stroke();
 
-            // Asfalto (Levemente transparente para ver o grid passando por baixo)
-            ctx.fillStyle = 'rgba(44, 44, 52, 0.85)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Zebras laterais e faixas centrais
+            // Zebras e faixas (iguais nos dois modos)
             const zebraWidth = 20;
-            
             roadLines.forEach((line, index) => {
-                // Alterna as cores baseado no índice para dar o efeito de zebra
                 const isRed = index % 2 === 0;
-                
-                // Zebras na Esquerda
                 ctx.fillStyle = isRed ? '#ff2a2a' : '#ffffff';
                 ctx.fillRect(0, line.y, zebraWidth, line.height);
-                
-                // Zebras na Direita
-                ctx.fillStyle = isRed ? '#ff2a2a' : '#ffffff';
                 ctx.fillRect(canvas.width - zebraWidth, line.y, zebraWidth, line.height);
-
-                // Faixas centrais (brancas e tracejadas)
                 if (isRed) {
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.fillStyle = IS_MOBILE ? 'rgba(255,255,255,0.9)' : 'rgba(255, 255, 255, 0.7)';
                     const laneWidth = 10;
                     ctx.fillRect(canvas.width / 3 - laneWidth / 2, line.y, laneWidth, line.height);
                     ctx.fillRect((canvas.width / 3) * 2 - laneWidth / 2, line.y, laneWidth, line.height);
                 }
             });
-            
-            // Desenhar linhas contínuas para separar o acostamento (zebra) da pista
-            ctx.fillStyle = '#ffcc00'; // Linha amarela contínua
+
+            ctx.fillStyle = '#ffcc00';
             ctx.fillRect(zebraWidth, 0, 4, canvas.height);
             ctx.fillRect(canvas.width - zebraWidth - 4, 0, 4, canvas.height);
         }
