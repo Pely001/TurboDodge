@@ -894,6 +894,8 @@
 
             localStorage.setItem('carGameHighScores', JSON.stringify(highScores));
 
+            // Fecha o teclado virtual e restaura o zoom original no mobile
+            playerNameInputEl.blur();
             playerNameInputEl.value = '';
             saveRecordSectionEl.style.display = 'none';
             displayHighScores();
@@ -944,7 +946,10 @@
 
         saveScoreBtn.addEventListener('click', saveHighScore);
         playerNameInputEl.addEventListener('keyup', (e) => {
-            if (e.key === 'Enter') saveHighScore();
+            if (e.key === 'Enter') {
+                saveHighScore();
+                playerNameInputEl.blur();
+            }
         });
         backToMenuBtn.addEventListener('click', showMainMenu);
         fullscreenBtn.addEventListener('click', toggleFullscreen);
@@ -973,3 +978,14 @@
                 }
             }
         }
+
+        // Pausa o jogo automaticamente se o celular for girado durante o jogo
+        window.addEventListener('orientationchange', () => {
+            const isLandscape = window.screen.orientation
+                ? window.screen.orientation.type.includes('landscape')
+                : window.innerWidth > window.innerHeight;
+
+            if (isLandscape && canvas.style.display === 'block' && !gameOver && !isPaused) {
+                togglePause();
+            }
+        });

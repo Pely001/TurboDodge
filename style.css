@@ -257,4 +257,55 @@ canvas {
         border-radius: 0;
         box-shadow: none;
     }
+
+    /* Corrige o zoom automático ao focar no input em mobile:
+       Navegadores iOS/Android só dão zoom se font-size < 16px */
+    #highScoreContainer input {
+        font-size: 16px;
+    }
+}
+
+/* === Overlay de orientação paisagem === */
+#landscapeOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #0b0c10;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#landscapeContent {
+    text-align: center;
+    color: #66fcf1;
+    font-family: 'Press Start 2P', cursive;
+    padding: 20px;
+}
+
+#landscapeIcon {
+    font-size: 4em;
+    animation: rotateTip 1.5s ease-in-out infinite alternate;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+#landscapeContent p {
+    font-size: 0.8em;
+    line-height: 1.8;
+    color: #c5c6c7;
+    text-shadow: 0 0 8px #66fcf1;
+}
+
+@keyframes rotateTip {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(90deg); }
+}
+
+/* Mostra o overlay somente em celulares em modo paisagem */
+@media (max-width: 900px) and (orientation: landscape) {
+    #landscapeOverlay {
+        display: flex;
+    }
 }
