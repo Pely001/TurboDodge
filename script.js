@@ -751,27 +751,8 @@
         }
 
         function drawRoadLines() {
-            // Fundo synthwave com grade neon
-            ctx.fillStyle = '#110022';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
-            ctx.lineWidth = 1;
-            const gridSpacing = IS_MOBILE ? 80 : 40; // Menos linhas no mobile
-
-            ctx.beginPath();
-            for (let x = 0; x < canvas.width; x += gridSpacing) {
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-            }
-            for (let y = backgroundOffset - gridSpacing; y < canvas.height; y += gridSpacing) {
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-            }
-            ctx.stroke();
-
-            // Asfalto transparente (mostra a grade por baixo)
-            ctx.fillStyle = 'rgba(44, 44, 52, 0.85)';
+            // Fundo escuro simples (sem chão/grade)
+            ctx.fillStyle = '#1c1c28';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Zebras e faixas (iguais nos dois modos)
