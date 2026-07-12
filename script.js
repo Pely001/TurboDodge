@@ -58,6 +58,7 @@
         // --- Variáveis de Estado do Jogo ---
         let player, enemies, score, gameOver, enemySpeed, keys = {}, roadLines;
         let isPaused = false;
+        let lastTime = 0;
         let spawnTimer = 0;
         let spawnInterval = 100;
         let scoreMultiplier = 1;
@@ -163,6 +164,7 @@
             window.slowMotionTimer = 0; // Usando global
             gameOver = false;
             isPaused = false;
+            lastTime = performance.now();
             enemySpeed = INITIAL_ENEMY_SPEED;
             keys = {}; 
             roadLines = [];
@@ -250,6 +252,7 @@
                 backgroundMusic.pause();
             } else {
                 backgroundMusic.play().catch(e => console.log("Erro ao retomar música:", e));
+                lastTime = performance.now();
                 requestAnimationFrame(gameLoop);
             }
         }
@@ -269,15 +272,15 @@
             }
         }
 
-        function update() {
+        function update(dt) {
             // Movimentação suave com inércia
-            const accel = 0.8;
-            const friction = 0.85;
+            const accel = 0.8 * dt;
+            const friction = Math.pow(0.85, dt);
             if (keys['ArrowLeft']) player.speedX -= accel;
             if (keys['ArrowRight']) player.speedX += accel;
             
             player.speedX *= friction;
-            player.x += player.speedX;
+            player.x += player.speedX * dt;
             
             const zebraWidth = 20;
             const roadBorderOffset = 4; // yellow line width
@@ -290,12 +293,12 @@
             player.rotation = player.speedX * 0.05;
 
             if (isInvincible) {
-                invincibilityTimer--;
+                invincibilityTimer -= dt;
                 if (invincibilityTimer <= 0) isInvincible = false;
             }
             
             if (window.slowMotionTimer > 0) {
-                window.slowMotionTimer--;
+                window.slowMotionTimer -= dt;
             }
 
             // --- Lógica de Dificuldade Dinâmica: Aumento da Velocidade ---
@@ -306,8 +309,9 @@
             }
 
             // --- Gerar inimigos (Lógica REVISADA para spawn individual e sem sobreposição) ---
-            spawnTimer++;
+            spawnTimer += dt;
             if (spawnTimer >= spawnInterval) {
+                spawnTimer = 0;
                 let numEnemiesToAttemptSpawn = ENEMIES_AT_START;
 
                 if (score >= SCORE_FOR_3_CARS_CHANCE) {
@@ -445,7 +449,7 @@
                 
                 const effectiveEnemySpeed = window.slowMotionTimer > 0 ? enemySpeed * 0.5 : enemySpeed;
                 enemyA.speedOffset = targetSpeedOffset;
-                enemyA.y += Math.max(1, effectiveEnemySpeed + enemyA.speedOffset);
+                enemyA.y += Math.max(1, effectiveEnemySpeed + enemyA.speedOffset) * dt;
             }
 
             const playerHitboxX = player.x + player.offsetX;
@@ -517,20 +521,20 @@
             // Atualiza partículas (desativado totalmente no mobile)
             if (!IS_MOBILE) {
                 particles.forEach(p => {
-                    p.x += p.vx;
-                    p.y += p.vy + (effectiveEnemySpeed * 0.3);
-                    p.life -= p.decay;
+                    p.x += p.vx * dt;
+                    p.y += (p.vy + (effectiveEnemySpeed * 0.3)) * dt;
+                    p.life -= p.decay * dt;
                 });
                 particles = particles.filter(p => p.life > 0);
             }
 
             // Atualiza Fundo em Parallax (só no desktop)
             if (!IS_MOBILE) {
-                backgroundOffset += (effectiveEnemySpeed * 0.3);
+                backgroundOffset += (effectiveEnemySpeed * 0.3) * dt;
                 if (backgroundOffset > 40) backgroundOffset = 0;
             }
 
-            moveRoadLines();
+            moveRoadLines(dt);
 
             // Item Spawn Logic
             if (Math.random() < 0.015) { // ~1.5% chance per frame
@@ -540,7 +544,7 @@
             // Update Items
             for (let i = items.length - 1; i >= 0; i--) {
                 let item = items[i];
-                item.y += enemySpeed;
+                item.y += enemySpeed * dt;
                 
                 // Collision with player
                 if (playerHitboxX < item.x + item.size &&
@@ -648,11 +652,18 @@
             }
         }
 
-        function gameLoop() {
+        function gameLoop(timestamp) {
             if (gameOver) return;
             if (isPaused) return;
 
-            update();
+            if (!lastTime) lastTime = timestamp;
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+            
+            // Limita o deltaTime a 50ms (evita pulos se a aba perder foco) e normaliza para 60 FPS (16.66ms)
+            const dt = Math.min(deltaTime, 50) / 16.666;
+
+            update(dt);
             draw();
             requestAnimationFrame(gameLoop);
         }
@@ -731,11 +742,11 @@
             }
         }
 
-        function moveRoadLines() {
+        function moveRoadLines(dt) {
             const segmentHeight = 40;
             const effectiveEnemySpeed = window.slowMotionTimer > 0 ? enemySpeed * 0.5 : enemySpeed;
             roadLines.forEach(line => {
-                line.y += effectiveEnemySpeed;
+                line.y += effectiveEnemySpeed * dt;
                 if (line.y > canvas.height) {
                     line.y -= (segmentHeight * roadLines.length);
                 }
