@@ -1,6 +1,6 @@
         // --- Elementos do DOM ---
         const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false }); // alpha: false otimiza drasticamente no iOS
         const scoreEl = document.getElementById('score');
         const pauseMessageEl = document.getElementById('pauseMessage');
         const livesEl = document.getElementById('lives');
@@ -232,10 +232,10 @@
             keys['ArrowRight'] = rightPressed;
         }
 
-        window.addEventListener('touchstart', handleTouchEvent, { passive: false });
-        window.addEventListener('touchmove', handleTouchEvent, { passive: false });
-        window.addEventListener('touchend', handleTouchEvent, { passive: false });
-        window.addEventListener('touchcancel', handleTouchEvent, { passive: false });
+        gameAreaEl.addEventListener('touchstart', handleTouchEvent, { passive: false });
+        gameAreaEl.addEventListener('touchmove', handleTouchEvent, { passive: false });
+        gameAreaEl.addEventListener('touchend', handleTouchEvent, { passive: false });
+        gameAreaEl.addEventListener('touchcancel', handleTouchEvent, { passive: false });
 
         // Previne menu de contexto (clique com botão direito ou segurar toque) durante o jogo
         window.addEventListener('contextmenu', e => {
@@ -577,19 +577,19 @@
             blinkFrame++;
             if (!isInvincible || blinkFrame % 5 < 3) {
                 ctx.save();
-                ctx.translate(player.x + player.drawWidth / 2, player.y + player.drawHeight / 2);
+                ctx.translate(Math.round(player.x + player.drawWidth / 2), Math.round(player.y + player.drawHeight / 2));
                 ctx.rotate(player.rotation || 0);
-                ctx.drawImage(playerCarImg, -player.drawWidth / 2, -player.drawHeight / 2, player.drawWidth, player.drawHeight);
+                ctx.drawImage(playerCarImg, Math.round(-player.drawWidth / 2), Math.round(-player.drawHeight / 2), player.drawWidth, player.drawHeight);
                 ctx.restore();
             }
             
             enemies.forEach(enemy => {
                 ctx.save();
-                ctx.translate(enemy.x + enemy.drawWidth / 2, enemy.y + enemy.drawHeight / 2);
+                ctx.translate(Math.round(enemy.x + enemy.drawWidth / 2), Math.round(enemy.y + enemy.drawHeight / 2));
                 if (enemy.needsRotation) {
                     ctx.rotate(Math.PI);
                 }
-                ctx.drawImage(enemy.img, -enemy.drawWidth / 2, -enemy.drawHeight / 2, enemy.drawWidth, enemy.drawHeight);
+                ctx.drawImage(enemy.img, Math.round(-enemy.drawWidth / 2), Math.round(-enemy.drawHeight / 2), enemy.drawWidth, enemy.drawHeight);
                 ctx.restore();
             });
 
