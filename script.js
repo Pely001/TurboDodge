@@ -512,27 +512,24 @@
 
             const effectiveEnemySpeed = window.slowMotionTimer > 0 ? enemySpeed * 0.5 : enemySpeed;
 
-            // Fumaça do escapamento do jogador (desativado no mobile para melhorar FPS)
-            if (!IS_MOBILE && Math.random() < 0.4) {
+            // Fumaça do escapamento do jogador
+            const smokeChance = IS_MOBILE ? 0.2 : 0.4;
+            if (Math.random() < smokeChance) {
                 spawnParticles(player.x + player.drawWidth * 0.3, player.y + player.drawHeight * 0.9, 'rgba(200, 200, 200, 0.4)', 1, 0.5);
                 spawnParticles(player.x + player.drawWidth * 0.7, player.y + player.drawHeight * 0.9, 'rgba(200, 200, 200, 0.4)', 1, 0.5);
             }
 
-            // Atualiza partículas (desativado totalmente no mobile)
-            if (!IS_MOBILE) {
-                particles.forEach(p => {
-                    p.x += p.vx * dt;
-                    p.y += (p.vy + (effectiveEnemySpeed * 0.3)) * dt;
-                    p.life -= p.decay * dt;
-                });
-                particles = particles.filter(p => p.life > 0);
-            }
+            // Atualiza partículas
+            particles.forEach(p => {
+                p.x += p.vx * dt;
+                p.y += (p.vy + (effectiveEnemySpeed * 0.3)) * dt;
+                p.life -= p.decay * dt;
+            });
+            particles = particles.filter(p => p.life > 0);
 
-            // Atualiza Fundo em Parallax (só no desktop)
-            if (!IS_MOBILE) {
-                backgroundOffset += (effectiveEnemySpeed * 0.3) * dt;
-                if (backgroundOffset > 40) backgroundOffset = 0;
-            }
+            // Atualiza Fundo em Parallax
+            backgroundOffset += (effectiveEnemySpeed * 0.3) * dt;
+            if (backgroundOffset > 40) backgroundOffset = 0;
 
             moveRoadLines(dt);
 
@@ -617,14 +614,14 @@
                 ctx.fillText(label, item.x + item.size/2, item.y + item.size/2 + 2);
             });
 
-            // Partículas (desativadas no mobile — principal causa de lag)
-            if (!IS_MOBILE && particles.length > 0) {
+            // Partículas
+            if (particles.length > 0) {
                 for (let i = 0; i < particles.length; i++) {
                     const p = particles[i];
                     ctx.globalAlpha = Math.max(0, p.life);
                     ctx.fillStyle = p.color;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.arc(Math.round(p.x), Math.round(p.y), p.size, 0, Math.PI * 2);
                     ctx.fill();
                 }
                 ctx.globalAlpha = 1.0;
@@ -754,34 +751,28 @@
         }
 
         function drawRoadLines() {
-            if (IS_MOBILE) {
-                // Mobile: fundo opaco simples (sem grade transparente, sem alpha blend)
-                ctx.fillStyle = '#1c1c28';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            } else {
-                // Desktop: fundo synthwave com grade neon
-                ctx.fillStyle = '#110022';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Fundo synthwave com grade neon
+            ctx.fillStyle = '#110022';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
-                ctx.lineWidth = 1;
-                const gridSpacing = 40;
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.15)';
+            ctx.lineWidth = 1;
+            const gridSpacing = IS_MOBILE ? 80 : 40; // Menos linhas no mobile
 
-                ctx.beginPath();
-                for (let x = 0; x < canvas.width; x += gridSpacing) {
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, canvas.height);
-                }
-                for (let y = backgroundOffset - gridSpacing; y < canvas.height; y += gridSpacing) {
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(canvas.width, y);
-                }
-                ctx.stroke();
-
-                // Asfalto transparente (mostra a grade por baixo)
-                ctx.fillStyle = 'rgba(44, 44, 52, 0.85)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            for (let x = 0; x < canvas.width; x += gridSpacing) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
             }
+            for (let y = backgroundOffset - gridSpacing; y < canvas.height; y += gridSpacing) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+            }
+            ctx.stroke();
+
+            // Asfalto transparente (mostra a grade por baixo)
+            ctx.fillStyle = 'rgba(44, 44, 52, 0.85)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Zebras e faixas (iguais nos dois modos)
             const zebraWidth = 20;
